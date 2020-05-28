@@ -1,0 +1,3 @@
+# Not supported in linguist, but at least gets rid of misclassification
+*.ps linguist-language=PRAY
+*.cos linguist-language=CAOS
