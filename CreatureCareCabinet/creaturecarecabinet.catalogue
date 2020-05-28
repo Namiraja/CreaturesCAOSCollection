@@ -1,0 +1,205 @@
+#######################################################
+# Creature Care Cabinet Catalogue                     #
+# 2020-05-28 Version 0.4                              #
+# Author: Namiraja                                    #
+# Contact: todo                                       #
+# License: todo, probably MIT                         #
+#######################################################
+
+# You can change the tooltip for the graph presets here
+TAG "ToolTip 1 2 15350 40"
+"Digestive"
+TAG "ToolTip 1 2 15350 41"
+"Respiratory"
+TAG "ToolTip 1 2 15350 42"
+"Toxins"
+TAG "ToolTip 1 2 15350 43"
+"Antigens"
+TAG "ToolTip 1 2 15350 44"
+"Medicinal"
+TAG "ToolTip 1 2 15350 45"
+"Antibodies"
+TAG "ToolTip 1 2 15350 46"
+"Reproduction"
+TAG "ToolTip 1 2 15350 47"
+"Custom"
+
+# Graph preset chemicals list
+# !!! There HAVE to be 8 chemicals in every category !!!
+TAG "ccc_chems"
+# Digestive
+# - (  3) Glucose
+# - (  5) Starch             [from seeds]
+# - ( 10) Fat                [from food]
+# - ( 12) Protein            [from fruit]
+# - (  4) Glycogen (4)       [starch storage]
+# - (  9) adipose Tissue (9) [fat storage]
+# - ( 11) Muscle Tissue (11) [protein storage, counteract muscle toxin]
+# - ( 13) Amino Acid
+"3"
+"5"
+"10"
+"12"
+"4"
+"9"
+"11"
+"13"
+# Respiratory
+# - ( 29) Air
+# - ( 30) Oxygen
+# - ( 33) Water
+# - ( 24) Dissolved carbon dioxide [waste of pyruvate, organ: lungs]
+# - ( 34) Energy (34)
+# - ( 35) ATP (35)
+# - ( 36) ADP (36)
+# - (  1) Lactate (1)              [suffocation, hunger for carbs]
+# not included but maybe interesting:
+#   ( 61) Lactic Acid (61)         [CFF genome]
+"29"
+"30"
+"33"
+"24"
+"34"
+"35"
+"36"
+"1"
+# Toxins
+# - ( 78) ATP Decoupler   [ATP to ADP VERY fast; cure: medicine one 92]
+# - ( 67) Cyanide         [slow down ATP creation; cure: sodium thiosulphate 96]
+# - ( 66) Heavy Metals    [deteriorates immune system, causes mutation in unborn children]
+# - ( 68) Belladonna
+# - ( 69) Geddonase       [insect sting, destroys adipose tissue]
+# - ( 70) Glycotoxin      [destroys glycogen; cure: arnica]
+# - ( 73) Histamine A     [cause sneezing, makes contagious, produced by some antigens]
+# - ( 74) Histamine B     [cause coughing, makes contagious, produced by some antigens]
+# not included but maybe interesting:
+# - ( 75) Alcohol (75)
+# - ( 79) carbon monoxide [interferes with oxygen supply]
+# - ( 81) Muscle toxin    [damages muscle tissue]
+# - ( 80) fear toxin 
+# - ( 72) Feever Toxin    [cause fever, produced by some antigens]
+# - ( 71) Sleep Toxin     [cause sleepyness, produced by some antigens]
+"78"
+"67"
+"66"
+"68"
+"69"
+"70"
+"73"
+"74"
+# Antigens [from bacterial infection, can cause organ damage]
+# - ( 82) Antigen 0  [causes Histamine B; attacks kidney, uterus, pain, muscles]
+# - ( 83) Antigen 1  [causes Histamine A; attacks liver catabolic, skin, uterus, CDM, pain]
+# - ( 84) Antigen 2  [causes Coldness; attacks liver catabolic, skin, gonad, constitution, feear]
+# - ( 85) Antigen 3  [causes Coldness; attacks CNS, regulation, gonad, FoF, fear]
+# - ( 86) Antigen 4  [causes Hotness; attacks CNS, digestion, regulation, lung, FoF, immune system]
+# - ( 87) Antigen 5  [causes Wounded; attacks digestion, mitochondria, lung, floating, immune system]
+# - ( 88) Antigen 6  [causes Hotness; attacks liver anabolic, mitochondria, floating, bones]
+# - ( 89) Antigen 7  [causes Pain; attacks liver anabolic, kidney, bones, muscles]
+"82"
+"83"
+"84"
+"85"
+"86"
+"87"
+"88"
+"89"
+# Medicinal
+# - ( 92) Medicine One        [cures ATP decoupler]
+# - ( 93) Anti-oxidant        [cures carbon monoxide]
+# - ( 94) Prostaglandin       [aids healing injuries]
+# - ( 95) EDTA                [cures heavy metal]
+# - ( 96) Sodium thiosulphite [cures cyanide]
+# - ( 97) Arnica              [cures glycotoxin]
+# - (100) Antihistamine       [stop sneezing/coughing]
+# - (116) Dehydrogenase       [remove alcohol]
+# not included but maybe interesting:
+# - ( 99) Vitamin C           [bone health, injury healing]
+"92"
+"93"
+"94"
+"95"
+"96"
+"97"
+"100"
+"116"
+# Antibodies
+# - (102-109) Antibody 0-7 [combat antigene 0-7]
+"102"
+"103"
+"104"
+"105"
+"106"
+"107"
+"108"
+"109"
+# Reproduction
+# - ( 46) Oestrogen              [female fertility]
+# - ( 48) Progesterone           [female pregnancy, deliver]
+# - ( 53) Testosterone           [male fertility]
+# - ( 54) Inhiblin               [male testosterone control]
+# - ( 40) Libido Lowerer
+# - ( 39) Arousal Potential      [produced when fertile; 39+41 = sex drive]
+# - ( 41) Opposite sex pheromone
+# - ( 98) Vitamin E              [reproductive organ health]
+"46"
+"48"
+"53"
+"54"
+"40"
+"39"
+"41"
+"98"
+# Custom
+# - ( 90) Wounded
+# - (127) Injury           [heal wound but can cause death]
+# - (215) Platelets        [TWB2 seal wounds]
+# - (125) Life
+# - (128) Stress           [too high drive for long time]
+# - (130) Tryptamine       [hallucinogenic in CFF genome]
+# - (110) Body Heat        [TWB genome]
+# - (111) Heat Loss        [TWB genome]
+# not included but maybe interesting:
+# - (112) Anabolic steroid [build muscle tissue]
+"90"
+"127"
+"215"
+"125"
+"128"
+"130"
+"110"
+"111"
+
+# Tipp: don't like the chemical names? Change your ChemicalNames.catalogue "chemical_names"
+
+TAG "Agent Help 1 2 15350"
+"Creature Care Cabinet"
+"Scan module:\nYou can toggle this module with [CTRL+4] or by pressing the button on the right.\n\nYou can enable or disable scanning for specific species with the buttons on the bottom.\n\nIf the alarm sound is enabled, it will ring when a creature with bacteria or toxins is found, even if there's currently another module selected.\nIt will not ring again, until the list of infected creatures is cleared.\nYou can disable the sound with the alarm button or you can disable scanning completely with the middle button.\n\nIf scanning is enabled, the number of infected creatures is shown on the module button.\nIf more than two creatures are infected, you can scroll the pages with the left and right buttons that are visible in that case.\n\n\nGraph module:\nYou can toggle this module with [CTRL+5] or by pressing the button on the right.\n\nThe graph shows the chemical levels of the currently targeted creature.\nYou can disable lines by pressing the button on the left, next to the chemical name.\n\nUse the buttons on the bottom to choose a preset.\nWhen switching target creature or presets, all lines are set to 0 to make the change visible.\nYou can change the presets by editing the catalogue file.\n\n\nThe Agent will open in the last used module when clicked."
+
+## TAG "ToolTip FMLY GNUS SPCS PARTID POSE"
+TAG "ToolTip 1 2 15350 1"
+"Scan for infections"
+TAG "ToolTip 1 2 15350 2"
+"Chemical graph"
+TAG "ToolTip 1 2 15350 3"
+"Organs"
+TAG "ToolTip 1 2 15350 4"
+"Inject"
+# TAG "ToolTip 1 2 15350 19"
+# "Norn scan"
+# TAG "ToolTip 1 2 15350 20"
+# "Grendel scan"
+# TAG "ToolTip 1 2 15350 21"
+# "Ettin scan"
+# TAG "ToolTip 1 2 15350 22"
+# "Geat scan"
+TAG "ToolTip 1 2 15350 23"
+"Notifications"
+TAG "ToolTip 1 2 15350 24"
+"Alarm"
+TAG "ToolTip 1 2 15350 25"
+"On/Off"
+# TAG "ToolTip 1 2 15350 28"
+# "Previous"
+# TAG "ToolTip 1 2 15350 29"
+# "Next"

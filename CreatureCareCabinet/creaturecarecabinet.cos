@@ -1,0 +1,1048 @@
+*******************************************************
+* 1 2 15350 - Creature Care Cabinet                   *
+* 2020-05-28 Version 0.4                              *
+* Author: Namiraja                                    *
+* Contact: todo                                       *
+* License: todo, probably MIT                         *
+*******************************************************
+
+* CREATE
+inst
+     * Check if already existing
+     doif totl 1 2 15350 > 0
+          dbg: outs "CCC: Already existing, stopping creation"
+          stop
+     endi
+     dbg: outs "CCC: Creating GUI"
+     new: comp 1 2 15350 "creaturecarecabinet" 3 0 8900
+          attr 308
+          bhvr 0
+          perm 60
+          clac 0
+          * default position x, y
+          setv ov01 -336
+          setv ov02 399
+          flto ov01 ov02
+          * in/out flag: -1=in/closed, +1=out/open
+          setv ov99 -1
+          * alarm indicator
+          setv ov05 0
+          * alarm visal and sound toggle
+          setv ov07 1
+          setv ov08 1
+          * scan toggle
+          setv ov09 1
+          * scan norn=1, grendel=2, ettin=4, geat=8
+          doif game "Grettin" = 1
+               setv ov06 15
+          else
+               setv ov06 1
+          endi
+          * graph preset
+          * 0 = digestive, 1 = respiratory, 2 = toxins,       3 = antigens
+          * 4 = medicinal, 5 = antibodies , 6 = reproduction, 7 = custom
+          setv ov10 0
+          * graph line toggles
+          setv ov11 1
+          setv ov12 1
+          setv ov13 1
+          setv ov14 1
+          setv ov15 1
+          setv ov16 1
+          setv ov17 1
+          setv ov18 1
+          * input event mask raw key down+up
+          imsk 3
+
+          sets name "currently opened module" "init"
+          * Create parts
+          * Scan button
+          pat: butt 1 "creaturecarecabinet" 3 2 298 10 5 [1] 1001 0
+          part 1
+          anim [0]
+          * sick counter
+          pat: fixd 5 "creaturecarecabinet" 13 310 19 10 "whiteontransparentchars"
+          part 5
+          frmt 0 0 0 0 0 0 0
+          * Graph button
+          pat: butt 2 "creaturecarecabinet" 5 2 298 57 5 [1] 1002 0
+          part 2
+          anim [0]
+          * Organ button
+          pat: butt 3 "creaturecarecabinet" 7 2 298 106 5 [1] 1003 0
+          part 3
+          anim [0]
+          * Inject button
+          pat: butt 4 "creaturecarecabinet" 9 2 298 153 5 [1] 1004 0
+          part 4
+          anim [0]
+          * initial quick tick
+          tick 1
+slow
+* open after creation
+mesg writ targ 0
+
+* ACTIVATE 1 open up
+scrp 1 2 15350 1
+     doif name "currently opened module" = "init"
+          call 1001 0 0
+     endi
+     inst
+          lock
+               snde "gui1"
+               clac -1
+               velo 20 0
+               wait 12
+               velo 10 0
+               wait 8
+               velo 5 0
+               wait 3
+               doif posx >= 0
+                    velo 0 0
+                    flto 0 ov02
+               endi
+               * toggle in/out flag
+               negv ov99
+               clac 1
+          unlk
+     slow
+endm
+
+* ACTIVATE 2 close
+scrp 1 2 15350 2
+     inst
+          lock
+               snde "gui3"
+               clac -1
+               velo -20 0
+               wait 12
+               velo -10 0
+               wait 8
+               velo -5 0
+               wait 3
+               velo 0 0
+               flto ov01 ov02
+               * toggle in/out flag
+               negv ov99
+               clac 0
+          unlk
+     slow
+endm
+
+* TIMER scan for infected, draw graph
+scrp 1 2 15350 9
+     inst
+          * clean canvas
+          doif name "currently opened module" = "scan"
+              * unset buttons
+              part 28
+              pose 0
+              part 29
+              pose 0
+              * clear slots
+              setv va00 13
+              seta ov03 null
+              seta ov04 null
+              pat: move 10 -80 5
+              part 11 gall "blnk" 0
+              part 12 gall "blnk" 0
+              loop
+                   part va00
+                   ptxt " "
+                   addv va00 1
+              untl va00 = 19
+              * ov00 page index
+              * va99 creature index for left slot
+              setv va99 ov00
+              mulv va99 2
+              subv va99 1
+              * va98 creature index for right slot +1
+              setv va98 ov00
+              addv va98 1
+              mulv va98 2
+              subv va98 1
+              * creature index
+              setv va00 1
+              * creature drawn index
+              setv va02 1
+          endi
+          * scanning enabled and creatures to scan for?
+          doif ov09 = 1 and ov06 > 0
+               * alarm check
+               setv va21 0
+               * current creature sick marker
+               setv va26 0
+               * counter
+               setv va27 0
+               * Grendel + Ettin unlocked?
+               doif game "Grettin" = 1
+                    setv va03 0
+               else
+                    setv va03 1
+               endi
+               enum 4 va03 0
+                    * ov06 1=norn, 2=grendel, 4=ettin, 8=geat
+                    setv va22 mv06
+                    andv va22 1
+                    setv va23 mv06
+                    andv va23 2
+                    setv va24 mv06
+                    andv va24 4
+                    setv va25 mv06
+                    andv va25 8
+                    doif gnus = 1 and va22 = 0
+                         * dbg: outs "CCC: Skip norn scan"
+                    elif gnus = 2 and va23 = 0
+                         * dbg: outs "CCC: Skip grendel scan"
+                    elif gnus = 3 and va24 = 0
+                         * dbg: outs "CCC: Skip ettin scan"
+                    elif gnus = 4 and va25 = 0
+                         * dbg: outs "CCC: Skip geat scan"
+                    else
+                         * current creature
+                         seta va04 targ
+                         * bacteria counter
+                         setv va16 0
+                         * found toxins
+                         sets va19 ""
+                         * Scan for bactirial infection
+                         * can't use etch since it refers to ownr not targ
+                         enum 2 32 23
+                              doif ov00 = va04
+                                   targ va04
+                                   addv va16 1
+                              endi
+                         next
+                         targ va04
+                         * found bacteria, raise potential alarm
+                         doif va16 > 0
+                              setv va26 1
+                         endi
+                         * scan from chem 66 to chem 89 (toxins + antigens)
+                         setv va18 66
+                         loop
+                              doif chem va18 > 0.1
+                                   * only care for names if module open
+                                   doif mame "currently opened module" = "scan"
+                                        adds va19 read "chemical_names" va18
+                                        * show amount from 0-100 instead of 0.0-1.0
+                                        adds va19 " ("
+                                        setv va20 100
+                                        mulv va20 chem va18
+                                        setv va20 ftoi va20
+                                        adds va19 vtos va20
+                                        adds va19 ")\n"
+                                   endi
+                                   setv va26 1
+                              endi
+                              addv va18 1
+                         untl va18 = 90
+                         * found sick creature
+                         doif va26 = 1
+                              * it's the first one this round, might need alarm
+                              doif va21 = 0
+                                   setv va21 1
+                                   targ ownr
+                                   * raise alarm, if it's not on yet
+                                   doif ov05 = 0
+                                        setv ov05 1
+                                        * send sound if enabled
+                                        doif ov08 = 1
+                                             snde "war1"
+                                        endi
+                                   endi
+                                   targ va04
+                              endi
+                              * count infected
+                              addv va27 1
+                         endi
+                         * found some and module is open? Draw them
+                         doif va26 = 1 and mame "currently opened module" = "scan"
+                              * are there creatures before to show? Make button visible
+                              doif va00 < va99
+                                   sets va03 gtos 0
+                                   * creature born or dead but still there?
+                                   doif ooww va03 = 3 or ooww va03 = 5
+                                        targ ownr
+                                        part 28
+                                        pose 1
+                                        part 29
+                                        pose 0
+                              endi
+                              * fill the current page
+                              elif va00 < va98
+                                   sets va03 gtos 0
+                                   * if creature born or dead and still there
+                                   doif ooww va03 = 3 or ooww va03 = 5
+                                        * get the face and tint of the creature
+                                        sets va05 face
+                                        setv va06 face
+                                        setv va07 tint 1
+                                        setv va08 tint 2
+                                        setv va09 tint 3
+                                        setv va10 tint 4
+                                        setv va11 tint 5
+                                        * get the name
+                                        sets va12 hist name va03
+                                        doif va12 = ""
+                                             dbg: outs "CCC: nameless"
+                                             sets va12 "?"
+                                        endi
+                                        * is it dead?
+                                        doif dead = 1
+                                             adds va12 " (D)"
+                                        endi
+                                        * get the slots for drawing
+                                        targ ownr
+                                        * left or right slot?
+                                        setv va01 va02
+                                        addv va01 10
+                                        doif va01 = 11
+                                             * left slot creature
+                                             seta ov03 va04
+                                             * x position left slot
+                                             setv va13 45
+                                             * move indicator if norn is selected
+                                             doif norn = ov03
+                                                  pat: move 10 60 5
+                                             endi
+                                        elif va01 = 12
+                                             * right slot creature
+                                             seta ov04 va04
+                                             * x position right slot
+                                             setv va13 195
+                                             * move indicator if norn is selected
+                                             doif norn = ov04
+                                                  pat: move 10 210 5
+                                             endi
+                                        endi
+                                        * y position
+                                        setv va14 5
+                                        * get rid of blank
+                                        pat: kill va01
+                                        * draw face
+                                        setv va15 va01
+                                        addv va15 1000
+                                        pat: butt va01 va05 va06 1 va13 va14 1 [] va15 0
+                                        part va01
+                                        tino va07 va08 va09 va10 va11
+                                        * show name
+                                        addv va01 2
+                                        part va01
+                                        ptxt va12
+                                        * show bacteria count
+                                        addv va01 2
+                                        part va01
+                                        sets va17 vtos va16
+                                        adds va17 " Bacteria"
+                                        ptxt va17
+                                        * show toxins
+                                        addv va01 2
+                                        part va01
+                                        ptxt va19
+                                        * one creature drawn, next slot
+                                        addv va02 1
+                                   * end check born or dead
+                                   endi
+                              * there are more creatures to show. Make next page button visible
+                              else
+                                   sets va03 gtos 0
+                                   * creature born or dead and still there?
+                                   doif ooww va03 = 3 or ooww va03 = 5
+                                        targ ownr
+                                        part 29
+                                        pose 1
+                                   endi
+                              endi
+                              addv va00 1
+                         * end of check for infected & module = scan
+                         endi
+                         setv va26 0
+                    * end of species check
+                    endi
+               next
+               * set counter text
+               part 5
+               doif va27 > 0
+                    ptxt vtos va27
+               else
+                    ptxt ""
+               endi
+               * all scanned, no infected? clear alarm.
+               doif va21 = 0
+                    setv ov05 0
+               endi
+               tick 100
+          * scanning disabled, stop timer
+          else
+               tick 0
+          * end of scan enabled check
+          endi
+     slow
+     inst
+          doif name "currently opened module" = "graph"
+               * get current preset: ov10
+               setv va37 ov10
+               setv va36 ov10
+               addv va36 1
+               * set start and end point for preset chemicals
+               mulv va37 8
+               mulv va36 8
+               * write legend
+               sets va38 ""
+               setv va31 va37
+               loop
+                    setv va35 stoi read "ccc_chems" va31
+                    adds va38 read "chemical_names" va35
+                    adds va38 "\n"
+                    addv va31 1
+               untl va31 = va36
+               part 38 ptxt va38
+               * norn selected? Read chemical levels
+               doif norn <> null
+                    setv va31 va37
+                    setv va32 0
+                    loop
+                         setv va33 va32
+                         addv va33 11
+                         * line disabled
+                         doif avar ownr va33 = -1
+                              setv va30 0
+                         else
+                              * read chem level
+                              targ norn
+                              doif targ <> null
+                                   setv va30 chem stoi read "ccc_chems" va31
+                              else
+                                   stop
+                              endi
+                         endi
+                         targ ownr
+                         part 59
+                         * update graph line
+                         grpv va32 va30
+                         * next chem
+                         addv va31 1
+                         addv va32 1
+                    untl va31 = va36
+                    grpv 8 0
+               endi
+               tick 20
+          endi
+     slow
+     * elif name "currently opened module" = "organ"
+     * elif name "currently opened module" = "inject"
+endm
+
+* RAW KEY DOWN keybinds
+scrp 1 2 15350 73
+     * Check if 4 pressed while CTRL down
+     * Ctrl+4 scan module
+     doif keyd 17 = 1 and _p1_ = '4'
+          lock
+               * open
+               doif ov99 = -1
+                    doif name "currently opened module" <> "scan"
+                         call 1001 0 0
+                    endi
+                    call 1 0 0
+               * close
+               elif ov99 = 1 and name "currently opened module" = "scan"
+                    call 2 0 0
+               * switch to scan module
+               elif ov99 = 1
+                    call 1001 0 0
+               endi
+          unlk
+     * Ctrl+5 graph module
+     elif keyd 17 = 1 and _p1_ = '5'
+          lock
+               * open
+               doif ov99 = -1
+                    doif name "currently opened module" <> "graph"
+                         call 1002 0 0
+                    endi
+                    call 1 0 0
+               * close
+               elif ov99 = 1 and name "currently opened module" = "graph"
+                    call 2 0 0
+               * switch to graph module
+               elif ov99 = 1
+                    call 1002 0 0
+               endi
+          unlk
+     endi
+endm
+
+* SELECTED CREATURE CHANGED
+scrp 1 2 15350 120
+     doif name "currently opened module" = "scan"
+          * creature is in left slot
+          doif _p1_ = ov03
+               part 10
+               pat: move 10 60 5
+          * creature is in right slot
+          elif _p1_ = ov04
+               part 10
+               pat: move 10 210 5
+          * creature is not currently in list
+          else
+               part 10
+               pat: move 10 -80 5
+          endi
+     elif name "currently opened module" = "graph"
+          * short clear to 0 to better see target change
+          setv va01 0
+          part 59
+          loop
+               grpv va01 0
+               addv va01 1
+          untl va01 = 9
+     endi
+endm
+
+* OPEN SCAN MUDULE
+scrp 1 2 15350 1001
+     lock
+          inst
+               doif name "currently opened module" <> "scan"
+                    snde "htab"
+                    * switch module to scan
+                    sets va00 name "currently opened module"
+                    sets name "currently opened module" "scan"
+                    call 1009 va00 name "currently opened module"
+               endi
+          slow
+     unlk
+endm
+* OPEN GRAPH MODULE
+scrp 1 2 15350 1002
+     lock
+          inst
+               doif name "currently opened module" <> "graph"
+                    snde "htab"
+                    * switch module to graph
+                    sets va00 name "currently opened module"
+                    sets name "currently opened module" "graph"
+                    call 1009 va00 name "currently opened module"
+               endi
+          slow
+     unlk
+endm
+
+* SWITCH MODULE clear and create parts
+scrp 1 2 15350 1009
+     lock
+          * old module
+          sets va00 _p1_
+          * new module
+          sets va01 _p2_
+          * part indices
+          setv va10 0
+          setv va11 0
+          * clean up old module
+          inst
+               * which module to clean up?
+               doif va00 = "scan"
+                    * set button to inactive
+                    part 1
+                    anim [0]
+                    * parts
+                    setv va10 10
+                    setv va11 30
+               elif va00 = "graph"
+                    * set button to inactive
+                    part 2
+                    anim [0]
+                    * parts
+                    setv va10 30
+                    setv va11 60
+               endi
+               * kill the parts
+               doif va10 > 0
+                    loop
+                         pat: kill va10
+                         addv va10 1
+                    untl va10 = va11
+               endi
+          slow
+          * create new module
+          inst
+               doif va01 = "scan"
+                    part 0
+                    pose 1
+                    part 1
+                    anim [1]
+                    * page number
+                    setv ov00 1
+                    * Scan creature slots
+                    seta ov03 null
+                    seta ov04 null
+                    * indicator, out of visual zone for now
+                    pat: dull 10 "indicator" 10 -80 5 10
+                    part 10
+                    anim [0 1 2 3 4 5 6 7 8 9 255]
+                    * face slots
+                    pat: butt 11 "blnk" 0 1 48 5 1 [] 1011 0
+                    pat: butt 12 "blnk" 0 1 193 5 1 [] 1012 0
+                    * text slots
+                    pat: fixd 13 "creaturecarecabinet" 13 12 57 2 "whiteontransparentchars"
+                    part 13
+                    frmt 0 0 0 0 0 0 2
+                    pat: fixd 14 "creaturecarecabinet" 13 157 57 2 "whiteontransparentchars"
+                    part 14
+                    frmt 0 0 0 0 0 0 2
+                    pat: fixd 15 "creaturecarecabinet" 13 12 67 1 "whiteontransparentchars"
+                    part 15
+                    frmt 0 0 0 0 0 0 2
+                    pat: fixd 16 "creaturecarecabinet" 13 157 67 1 "whiteontransparentchars"
+                    part 16
+                    frmt 0 0 0 0 0 0 2
+                    pat: fixd 17 "creaturecarecabinet" 14 12 79 1 "whiteontransparentchars"
+                    part 17
+                    frmt 5 5 5 0 0 0 0
+                    pat: fixd 18 "creaturecarecabinet" 14 157 79 1 "whiteontransparentchars"
+                    part 18
+                    frmt 5 5 5 0 0 0 0
+                    * toggle norn scan
+                    setv va22 ov06
+                    andv va22 1
+                    pat: butt 19 "creaturecarecabinet" 19 2 44 164 1 [] 1019 1
+                    * Check if norn scanning is enabled
+                    doif va22 = 1
+                         part 19
+                         pose 1
+                    endi
+                    * toggle grendel scan
+                    setv va23 ov06
+                    andv va23 2
+                    pat: butt 20 "creaturecarecabinet" 21 2 83 164 1 [] 1020 1
+                    * Check if grendel scanning is enabled
+                    doif va23 = 2
+                         part 20
+                         pose 1
+                    endi
+                    * toggle ettin scan
+                    setv va24 ov06
+                    andv va24 4
+                    pat: butt 21 "creaturecarecabinet" 23 2 187 164 1 [] 1021 1
+                    * Check if ettin scanning is enabled
+                    doif va24 = 4
+                         part 21
+                         pose 1
+                    endi
+                    * toggle geat scan
+                    setv va25 ov06
+                    andv va25 8
+                    pat: butt 22 "creaturecarecabinet" 25 2 226 164 1 [] 1022 1
+                    * Check if geat scanning is enabled
+                    doif va25 = 8
+                         part 22
+                         pose 1
+                    endi
+                    * toggle visual alarm (ov07)
+                    pat: butt 23 "creaturecarecabinet" 27 2 116 156 1 [] 1023 1
+                    part 23
+                    * Check if visual alarm is enabled
+                    doif ov07 = 1
+                         pose 1
+                    endi
+                    * toggle audiible alarm (ov08)
+                    pat: butt 24 "creaturecarecabinet" 31 2 150 156 1 [] 1024 1
+                    part 24
+                    * Check if audible alarm is enabled
+                    doif ov08 = 1
+                         pose 1
+                    endi
+                    * toggle scanning (ov09)
+                    pat: butt 25 "creaturecarecabinet" 29 2 133 155 1 [] 1025 0
+                    part 25
+                    * Check if scanning is enabled
+                    doif ov09 = 1
+                         pose 1
+                    endi
+                    * previous page
+                    pat: butt 28 "creaturecarecabinet" 15 2 9 164 1 [] 1028 1
+                    * next page
+                    pat: butt 29 "creaturecarecabinet" 17 2 269 163 1 [] 1029 1
+                    call 9 0 0
+               elif va01 = "graph"
+                    part 0
+                    pose 2
+                    part 2
+                    anim [1]
+                    pat: grph 59 "creaturecarecabinet" 33 24 11 1 64
+                    part 59
+                    grpl 186 0 44 0.0 1.0
+                    grpl 254 134 16 0.0 1.0
+                    grpl 254 248 16 0.0 1.0
+                    grpl 134 215 8 0.0 1.0
+                    grpl 16 254 164 0.0 1.0
+                    grpl 16 134 254 0.0 1.0
+                    grpl 134 16 254 0.0 1.0
+                    grpl 254 16 135 0.0 1.0
+                    * zero-line to hide other lines at 0
+                    grpl 1 1 1 0.0 1.0
+                    * legend text
+                    pat: fixd 38 "creaturecarecabinet" 34 25 14 2 "whiteontransparentchars"
+                    part 38
+                    frmt 4 0 0 0 6 0 0
+                    * legend buttons
+                    pat: butt 30 "creaturecarecabinet" 35 2 8 10 2 [] 1030 0
+                    doif ov11 = 1
+                         part 30
+                         pose 1
+                    else
+                         pose 0
+                    endi
+                    pat: butt 31 "creaturecarecabinet" 37 2 8 26 2 [] 1030 0
+                    doif ov12 = 1
+                         part 31
+                         pose 1
+                    else
+                         pose 0
+                    endi
+                    pat: butt 32 "creaturecarecabinet" 39 2 8 42 2 [] 1030 0
+                    doif ov13 = 1
+                         part 32
+                         pose 1
+                    else
+                         pose 0
+                    endi
+                    pat: butt 33 "creaturecarecabinet" 41 2 8 58 2 [] 1030 0
+                    doif ov14 = 1
+                         part 33
+                         pose 1
+                    else
+                         pose 0
+                    endi
+                    pat: butt 34 "creaturecarecabinet" 43 2 8 74 2 [] 1030 0
+                    doif ov15 = 1
+                         part 34
+                         pose 1
+                    else
+                         pose 0
+                    endi
+                    pat: butt 35 "creaturecarecabinet" 45 2 8 90 2 [] 1030 0
+                    doif ov16 = 1
+                         part 35
+                         pose 1
+                    else
+                         pose 0
+                    endi
+                    pat: butt 36 "creaturecarecabinet" 47 2 8 106 2 [] 1030 0
+                    doif ov17 = 1
+                         part 36
+                         pose 1
+                    else
+                         pose 0
+                    endi
+                    pat: butt 37 "creaturecarecabinet" 49 2 8 122 2 [] 1030 0
+                    doif ov18 = 1
+                         part 37
+                         pose 1
+                    else
+                         pose 0
+                    endi
+                    * preset buttons
+                    pat: butt 40 "creaturecarecabinet" 11 2 41 165 1 [] 1040 0
+                    pat: butt 41 "creaturecarecabinet" 11 2 69 165 1 [] 1040 0
+                    pat: butt 42 "creaturecarecabinet" 11 2 97 165 1 [] 1040 0
+                    pat: butt 43 "creaturecarecabinet" 11 2 125 165 1 [] 1040 0
+                    pat: butt 44 "creaturecarecabinet" 11 2 153 165 1 [] 1040 0
+                    pat: butt 45 "creaturecarecabinet" 11 2 181 165 1 [] 1040 0
+                    pat: butt 46 "creaturecarecabinet" 11 2 209 165 1 [] 1040 0
+                    pat: butt 47 "creaturecarecabinet" 11 2 237 165 1 [] 1040 0
+                    call 9 0 0
+               else
+                    part 0
+                    pose 0
+                    dbg: outs "CCC: unknown module for creation"
+               endi
+          slow
+     unlk
+endm
+
+* CREATURE SELECTION
+scrp 1 2 15350 1011
+     doif ov03 <> null
+          targ ov03
+          norn targ
+     endi
+endm
+scrp 1 2 15350 1012
+     doif ov04 <> null
+          targ ov04
+          norn targ
+     endi
+endm
+
+* TOGGLE NORN SCAN
+scrp 1 2 15350 1019
+     inst
+          lock
+               setv va00 ov06
+               andv va00 1
+               * disable norn scan
+               doif va00 = 1
+                    subv ov06 1
+                    part 19
+                    pose 0
+               * enable norn scan
+               else
+                    addv ov06 1
+                    part 19
+                    pose 1
+               endi
+          unlk
+     slow
+     * reset page
+     setv ov00 1
+     call 9 0 0
+endm
+* TOGGLE GRENDEL SCAN
+scrp 1 2 15350 1020
+     inst
+          lock
+               setv va00 ov06
+               andv va00 2
+               * disable grendel scan
+               doif va00 = 2
+                    subv ov06 2
+                    part 20
+                    pose 0
+               * enable grendel scan
+               else
+                    addv ov06 2
+                    part 20
+                    pose 1
+               endi
+          unlk
+     slow
+     * reset page
+     setv ov00 1
+     call 9 0 0
+endm
+* TOGGLE ETTIN SCAN
+scrp 1 2 15350 1021
+     inst
+          lock
+               setv va00 ov06
+               andv va00 4
+               * disable ettin scan
+               doif va00 = 4
+                    subv ov06 4
+                    part 21
+                    pose 0
+               * enable ettin scan
+               else
+                    addv ov06 4
+                    part 21
+                    pose 1
+               endi
+          unlk
+     slow
+     * reset page
+     setv ov00 1
+     call 9 0 0
+endm
+*TOGGLE GEAT SCAN
+scrp 1 2 15350 1022
+     inst
+          lock
+               setv va00 ov06
+               andv va00 8
+               * disable geat scan
+               doif va00 = 8
+                    subv ov06 8
+                    part 22
+                    pose 0
+               * enable geat scan
+               else
+                    addv ov06 8
+                    part 22
+                    pose 1
+               endi
+          unlk
+     slow
+     * reset page
+     setv ov00 1
+     call 9 0 0
+endm
+
+* SCANNER: TOGGLE VISUAL ALARM
+scrp 1 2 15350 1023
+     inst
+          lock
+               * disable life events for infections
+               doif ov07 = 1
+                    setv ov07 0
+                    part 23
+                    pose 0
+               * enable life events for infections
+               else
+                    setv ov07 1
+                    part 23
+                    pose 1
+               endi
+          unlk
+     slow
+endm
+* SCANNER: TOGGLE AUDIBLE ALARM
+scrp 1 2 15350 1024
+     inst
+          lock
+               * disable alarm sound
+               doif ov08 = 1
+                    setv ov08 0
+                    part 24
+                    pose 0
+               * enable alarm sound
+               else
+                    setv ov08 1
+                    part 24
+                    pose 1
+               endi
+          unlk
+     slow
+endm
+* SCANNER: TOGGLE SCANNING
+scrp 1 2 15350 1025
+     inst
+          lock
+               * disable scanning for infected creatures
+               doif ov09 = 1
+                    dbg: outs "CCC: disable scanning"
+                    setv ov09 0
+                    setv ov05 0
+                    part 25
+                    pose 0
+                    part 5
+                    ptxt " "
+               * enable scanning for infected creatures
+               else
+                    dbg: outs "CCC: enable scanning"
+                    setv ov09 1
+                    part 25
+                    pose 1
+               endi
+          unlk
+     slow
+     setv ov00 1
+     call 9 0 0
+endm
+
+* SCANNER: PREVIOUS PAGE
+scrp 1 2 15350 1028
+     inst
+          doif ov00 > 1
+               lock
+                    subv ov00 1
+                    call 9 0 0
+               unlk
+          endi
+     slow
+endm
+* SCANNER: NEXT PAGE
+scrp 1 2 15350 1029
+     inst
+          lock
+               addv ov00 1
+               call 9 0 0
+          unlk
+     slow
+endm
+
+* GRAPH: TOGGLE LINE
+scrp 1 2 15350 1030
+     inst
+          * convert from calling part (30-37) to line variable
+          setv va00 _p1_
+          subv va00 19
+          * reverse sign on line variable (ov11-ov18)
+          negv avar ownr va00
+          * show color
+          doif avar ownr va00 > 0
+               part _p1_
+               pose 1
+          * hide color
+          else
+               part _p1_
+               pose 0
+          endi
+     slow
+endm
+
+* GRAPH: SWITCH PRESET
+scrp 1 2 15350 1040
+     inst
+          * clear line toggles
+          setv va02 11
+          loop
+               setv avar ownr va02 1
+               addv va02 1
+          untl va02 > 18
+          setv va02 30
+          * reset buttons
+          loop
+               part va02
+               pose 1
+               addv va02 1
+          untl va02 > 37
+          * convert from calling part to preset id
+          setv va00 _p1_
+          subv va00 40
+          doif va00 >= 0 and va00 < 9 and va00 <> ov10
+               setv va01 0
+               part 59
+               * all to 0 to visualize change
+               loop
+                    grpv va01 0
+                    addv va01 1
+               untl va01 = 9
+               setv ov10 va00
+               call 9 0 0
+          endi
+     slow
+endm
+
+* DESTROY
+rscr
+     * kill all CCCs (should only be one)
+     enum 1 2 15350
+          kill targ
+     next
+     * open & close
+     scrx 1 2 15350 1
+     scrx 1 2 15350 2
+     * timer
+     scrx 1 2 15350 9
+     * keybinds
+     scrx 1 2 15350 73
+     * creature change
+     scrx 1 2 15350 120
+     * open or close module: scan, graph
+     scrx 1 2 15350 1001
+     scrx 1 2 15350 1002
+     * switch module
+     scrx 1 2 15350 1009
+     * creature selection
+     scrx 1 2 15350 1011
+     scrx 1 2 15350 1012
+     * toggle species scans: norn, grendel, ettin, geat
+     scrx 1 2 15350 1019
+     scrx 1 2 15350 1020
+     scrx 1 2 15350 1021
+     scrx 1 2 15350 1022
+     * toggle visual/audible alarms
+     scrx 1 2 15350 1023
+     scrx 1 2 15350 1024
+     * toggle scanning
+     scrx 1 2 15350 1025
+     * scanner: previous/next page
+     scrx 1 2 15350 1028
+     scrx 1 2 15350 1029
+     * graph: toggle lines
+     scrx 1 2 15350 1030
+     * graph: preset switching
+     scrx 1 2 15350 1040
