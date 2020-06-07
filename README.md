@@ -4,9 +4,19 @@ A collection of agents for [Creatures 3](https://creatures.wiki/Creatures_3)/[Do
 
 ## Building
 
-You can use [Jagent](https://creatures.wiki/Jagent), [Pray Builder](https://creatures.wiki/Pray_Builder) or whatever your preferred tool is to compile the `.ps` pray source into an agent. If no `.ps` file is included, the project might use Jagents [CAOS2PRAY](https://creatures.wiki/CAOS2PRAY) feature, use the `.cos` file in Jagent to compile the agent. If both versions don't work, pray source is not set up yet, use manual installation for the files.
+To compile the given files into an agent you can use [Jagent](https://creatures.wiki/Jagent), [Pray Builder](https://creatures.wiki/Pray_Builder) or the engine itself.
+
+If no `.ps` file is included, the project might use Jagents [CAOS2PRAY](https://creatures.wiki/CAOS2PRAY) feature, use the `.cos` file in Jagent to compile the agent. If both versions don't work, pray source is not set up yet, use manual installation for the files.
 
 If you're new to agent making, take a look at the [Awesome Creatures development resources](https://github.com/Creatures-Developer-Network/awesome-creatures-development-resources).
+
+### Pray with engine
+
+Move (or link) all files into your `Journal` directory. Start the game, open the command line (`Ctrl+Shift+c`) and run: 
+```
+outv pray make 1 "praysource.ps" 0 "agentname.agents" va00 outs va00
+```
+`agentname.agents` will be created in `My Agents`. Use the Injector to create the object.
 
 ### Files
 
