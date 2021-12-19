@@ -27,7 +27,7 @@ inst
           setv ov99 -1
           * alarm indicator
           setv ov05 0
-          * alarm visal and sound toggle
+          * alarm visual and sound toggle
           setv ov07 1
           setv ov08 1
           * scan toggle
@@ -129,42 +129,43 @@ scrp 1 2 15350 2
      slow
 endm
 
-* TIMER scan for infected, draw graph
+* TIMER scan for infected, draw graph, test organs
 scrp 1 2 15350 9
+     * scan module
      inst
-          * clean canvas
           doif name "currently opened module" = "scan"
-              * unset buttons
-              part 28
-              pose 0
-              part 29
-              pose 0
-              * clear slots
-              setv va00 13
-              seta ov03 null
-              seta ov04 null
-              pat: move 10 -80 5
-              part 11 gall "blnk" 0
-              part 12 gall "blnk" 0
-              loop
-                   part va00
-                   ptxt " "
-                   addv va00 1
-              untl va00 = 19
-              * ov00 page index
-              * va99 creature index for left slot
-              setv va99 ov00
-              mulv va99 2
-              subv va99 1
-              * va98 creature index for right slot +1
-              setv va98 ov00
-              addv va98 1
-              mulv va98 2
-              subv va98 1
-              * creature index
-              setv va00 1
-              * creature drawn index
-              setv va02 1
+               * clean canvas
+               * unset buttons
+               part 28
+               pose 0
+               part 29
+               pose 0
+               * clear slots
+               setv va00 13
+               seta ov03 null
+               seta ov04 null
+               pat: move 10 -80 5
+               part 11 gall "blnk" 0
+               part 12 gall "blnk" 0
+               loop
+                    part va00
+                    ptxt " "
+                    addv va00 1
+               untl va00 = 19
+               * ov00 page index
+               * va99 creature index for left slot
+               setv va99 ov00
+               mulv va99 2
+               subv va99 1
+               * va98 creature index for right slot +1
+               setv va98 ov00
+               addv va98 1
+               mulv va98 2
+               subv va98 1
+               * creature index
+               setv va00 1
+               * creature drawn index
+               setv va02 1
           endi
           * scanning enabled and creatures to scan for?
           doif ov09 = 1 and ov06 > 0
@@ -379,6 +380,7 @@ scrp 1 2 15350 9
           * end of scan enabled check
           endi
      slow
+     * graph module
      inst
           doif name "currently opened module" = "graph"
                * get current preset: ov10
@@ -430,7 +432,87 @@ scrp 1 2 15350 9
                tick 20
           endi
      slow
-     * elif name "currently opened module" = "organ"
+       * organ module
+       inst
+          doif name "currently opened module" = "organ"
+                 * norn selected? Get organ information
+                 doif norn <> null
+                      targ norn
+                      * organ conut
+                      doif targ <> null
+                           setv va40 orgn
+                      else
+                           stop
+                      endi
+                      targ ownr
+                      part 60
+                      ptxt vtos va40
+                      * organ damage
+                      targ norn
+                      sets va41 ""
+                      setv va42 0
+                      sets va43 ""
+                      sets va44 ""
+                      setv va45 0
+                      setv va46 0
+                      doif targ <> null
+                           doif va40 > 0
+                                loop
+                                     doif orgf va42 1 < 0.15
+                                          sets va44 "<tint 186 0 44>"
+                                     elif orgf va42 1 < 0.25
+                                          sets va44 "<tint 254 134 16>"
+                                     elif orgf va42 1 < 0.5
+                                          sets va44 "<tint 254 248 16>"
+                                     elif orgf va42 1 < 0.9
+                                          sets va44 "<tint 255 255 255>"
+                                     else
+                                          sets va44 "<tint 16 215 8>"
+                                     endi
+                                     sets va47 ""
+                                     doif va46 < rean "ccc_organs"
+                                          doif read "ccc_organs" va42 = "Uterus"
+                                               doif hist gend gtos 0 <> 2
+                                                    setv va45 1
+                                               endi
+                                          endi
+                                          setv va46 va42
+                                          addv va46 va45
+                                          adds va47 read "ccc_organs" va46
+                                     else
+                                          adds va47 "Organ"
+                                          adds va47 vtos va42
+                                     endi
+                                     adds va47 ": "
+                                     adds va47 va44
+                                     adds va47 subs vtos orgf va42 1 3 2
+                                     adds va47 "%<tint>\n"
+                                     doif va42 < 15
+                                          adds va41 va47
+                                     else
+                                          adds va43 va47
+                                     endi
+                                     addv va42 1
+                                     setv va46 va42
+                                untl va42 >= orgn
+                           else
+                                sets va41 ""
+                                sets va43 ""
+                           endi
+                      else
+                           sets va41 ""
+                           sets va43 ""
+                      endi
+                      targ ownr
+                      part 60
+                      ptxt va41
+                      part 61
+                      ptxt va43
+                 endi
+                 * TODO set better tick value
+                 tick 20
+            endi
+       slow
      * elif name "currently opened module" = "inject"
 endm
 
@@ -529,6 +611,20 @@ scrp 1 2 15350 1002
           slow
      unlk
 endm
+* OPEN ORGAN MODULE
+scrp 1 2 15350 1003
+     lock
+          inst
+               doif name "currently opened module" <> "organ"
+                    snde "htab"
+                    * switch module to organ
+                    sets va00 name "currently opened module"
+                    sets name "currently opened module" "organ"
+                    call 1009 va00 name "currently opened module"
+               endi
+          slow
+     unlk
+endm
 
 * SWITCH MODULE clear and create parts
 scrp 1 2 15350 1009
@@ -557,6 +653,13 @@ scrp 1 2 15350 1009
                     * parts
                     setv va10 30
                     setv va11 60
+               elif va00 = "organ"
+                    * set button to inactive
+                    part 3
+                    anim [0]
+                    * parts
+                    setv va10 60
+                    setv va11 62
                endi
                * kill the parts
                doif va10 > 0
@@ -753,6 +856,19 @@ scrp 1 2 15350 1009
                     pat: butt 45 "creaturecarecabinet" 11 2 181 165 1 [] 1040 0
                     pat: butt 46 "creaturecarecabinet" 11 2 209 165 1 [] 1040 0
                     pat: butt 47 "creaturecarecabinet" 11 2 237 165 1 [] 1040 0
+                    call 9 0 0
+               elif va01 = "organ"
+                    part 0
+                    pose 0
+                    part 3
+                    anim [1]
+                    * oran text
+                    pat: fixd 60 "creaturecarecabinet" 0 0 0 2 "whiteontransparentchars"
+                    pat: fixd 61 "creaturecarecabinet" 34 160 0 2 "whiteontransparentchars"
+                    part 60
+                    frmt 10 10 160 10 0 0 0
+                    part 61
+                    frmt 0 10 0 10 0 0 0
                     call 9 0 0
                else
                     part 0
