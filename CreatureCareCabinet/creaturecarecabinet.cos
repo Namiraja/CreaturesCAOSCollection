@@ -471,14 +471,32 @@ scrp 1 2 15350 9
                                      endi
                                      sets va47 ""
                                      doif va46 < rean "ccc_organs"
+                                          doif read "ccc_organs" va42 = "Thermal regulation"
+                                               doif hist gend gtos 0 <> 2
+                                                    doif orgn < 23
+                                                         addv va45 1
+                                                    endi
+                                               elif hist gend gtos 0 <> 1
+                                                    doif orgn < 24
+                                                         addv va45 1
+                                                    endi
+                                               else
+                                                  * TODO enby
+                                               endi
+                                          endi
                                           doif read "ccc_organs" va42 = "Uterus"
                                                doif hist gend gtos 0 <> 2
-                                                    setv va45 1
+                                                    addv va45 1
                                                endi
                                           endi
                                           setv va46 va42
                                           addv va46 va45
-                                          adds va47 read "ccc_organs" va46
+                                          doif va46 < rean "ccc_organs"
+                                               adds va47 read "ccc_organs" va46
+                                          else
+                                               adds va47 "Organ"
+                                               adds va47 vtos va42
+                                          endi
                                      else
                                           adds va47 "Organ"
                                           adds va47 vtos va42
